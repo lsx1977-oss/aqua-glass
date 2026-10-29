@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Aqua 短片
 
-A Next.js 16 site for watching open-licensed short films (Blender Studio) and public-domain NASA footage in an aqua "liquid glass" UI. The interface is in Chinese.
+A Next.js 16 site for watching open-licensed short films (Blender Studio) and public-domain NASA footage in a dark UI with a pink-to-coral accent. The interface is in Chinese.
 
 ## Commands
 - `npm run dev` — dev server
@@ -19,7 +19,7 @@ A Next.js 16 site for watching open-licensed short films (Blender Studio) and pu
 ## Layout
 - `src/app/page.tsx` renders `AquaGlassApp` from `src/components/aqua/`.
 - `src/components/aqua/videos.ts` holds every film; add or edit films there.
-- `src/components/aqua/aqua-glass.css` is scoped to `.aq-root` and defines the design tokens (brand blues, glass surfaces, shadows, radii) with a `[data-theme="dark"]` override. Reuse those variables for new UI.
+- `src/components/aqua/aqua-glass.css` is scoped to `.aq-root` and defines the design tokens (pink brand scale, surfaces, shadows, radii). Dark is the default theme; `[data-theme="dark"]` holds its overrides. Reuse those variables for new UI.
 - Posters live in `public/posters/`; videos and stills stream from Wikimedia Commons.
 
 ## Rules

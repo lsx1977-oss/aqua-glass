@@ -24,14 +24,14 @@ function useColumnCount() {
 
 function readTheme(): Theme {
   try {
-    return localStorage.getItem("aq-theme") === "dark" ? "dark" : "light";
+    return localStorage.getItem("aq-theme") === "light" ? "light" : "dark";
   } catch {
-    return "light";
+    return "dark";
   }
 }
 
 export function AquaGlassApp() {
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useState<Theme>("dark");
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [offscreen, setOffscreen] = useState(false);
