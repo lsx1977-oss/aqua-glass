@@ -18,10 +18,12 @@ A Next.js 16 site for watching open-licensed short films (Blender Studio) and pu
 
 ## Layout
 - `src/app/page.tsx` renders `AquaGlassApp` from `src/components/aqua/`.
-- `src/components/aqua/videos.ts` holds every film; add or edit films there.
+- Films and homepage copy come from Supabase (`videos` and `site_settings` tables, see `supabase/schema.sql`) via `src/components/aqua/content.ts`, which uses the REST API with `SUPABASE_URL` / `SUPABASE_ANON_KEY` and revalidates every 60s.
+- `src/components/aqua/videos.ts` is the built-in fallback list and the source for `supabase/seed.sql` (`npm run seed:sql`).
 - `src/components/aqua/aqua-glass.css` is scoped to `.aq-root` and defines the design tokens (pink brand scale, surfaces, shadows, radii). Dark is the default theme; `[data-theme="dark"]` holds its overrides. Reuse those variables for new UI.
 - Posters live in `public/posters/`; videos and stills stream from Wikimedia Commons.
 
 ## Rules
 - Every film needs its credit fields filled (`studio`, `license`, `sourcePage`, `posterCredit`).
+- Only the public anon key goes in the site's env; never the service_role key.
 - Tailwind preflight is intentionally off (`src/app/globals.css`); the page styles its own elements.

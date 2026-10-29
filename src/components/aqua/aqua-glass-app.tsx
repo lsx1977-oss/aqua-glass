@@ -6,7 +6,8 @@ import { useLiked } from "./use-video-prefs";
 import { VideoCard } from "./video-card";
 import { VideoFeed } from "./video-feed";
 import { VideoPlayer } from "./video-player";
-import { GENRES, VIDEOS, genreLabel, type Video } from "./videos";
+import type { SiteSettings } from "./content";
+import { GENRES, genreLabel, type Video } from "./videos";
 import "./aqua-glass.css";
 
 type Theme = "light" | "dark";
@@ -30,7 +31,7 @@ function readTheme(): Theme {
   }
 }
 
-export function AquaGlassApp() {
+export function AquaGlassApp({ videos, settings }: { videos: Video[]; settings: SiteSettings }) {
   const [theme, setTheme] = useState<Theme>("dark");
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -96,17 +97,24 @@ export function AquaGlassApp() {
   };
 
   const visible = useMemo(() => {
-    if (tab === "liked") return liked.map((id) => VIDEOS.find((video) => video.id === id)).filter(Boolean) as Video[];
+    if (tab === "liked") return liked.map((id) => videos.find((video) => video.id === id)).filter(Boolean) as Video[];
     const needle = query.trim().toLowerCase();
-    return VIDEOS.filter(
+    return videos.filter(
       (video) =>
         (genre === "All" || video.genre === genre) &&
         (!needle || `${video.title} ${video.genre} ${genreLabel(video.genre)} ${video.studio} ${video.description}`.toLowerCase().includes(needle)),
     );
-  }, [genre, liked, query, tab]);
+  }, [genre, liked, query, tab, videos]);
+
+  // Known genres keep their usual order; any new genre added in the CMS is appended.
+  const genres = useMemo(() => {
+    const used = new Set(videos.map((video) => video.genre));
+    return ["All", ...GENRES.filter((name) => used.has(name)), ...[...used].filter((name) => !GENRES.includes(name))];
+  }, [videos]);
+  const featured = videos.find((video) => video.id === settings.featuredVideoId) ?? videos[0];
 
   const playingIndex = visible.findIndex((video) => video.id === playingId);
-  const playing = playingIndex >= 0 ? visible[playingIndex] : VIDEOS.find((video) => video.id === playingId);
+  const playing = playingIndex >= 0 ? visible[playingIndex] : videos.find((video) => video.id === playingId);
   const openFeed = (startId: string | null = null) => {
     setMenuOpen(false);
     setPlayingId(null);
@@ -153,7 +161,7 @@ export function AquaGlassApp() {
               <WandSparkles aria-hidden="true" />
               Aqua
             </span>
-            <span className="aq-tagline">好看的短片 · 一划就有</span>
+            {settings.tagline ? <span className="aq-tagline">{settings.tagline}</span> : null}
           </a>
           <button className="aq-loginButton" type="button" onClick={() => openFeed()}>
             观看
@@ -164,24 +172,31 @@ export function AquaGlassApp() {
       <main className="aq-main">
         <h1 className="aq-srOnly">Aqua 短片：观看开源动画短片和 NASA 高清太空影像</h1>
 
-        <section className="aq-promo" aria-labelledby="aq-promo-title">
+        <section className="aq-promo" aria-label="推荐">
           <div className="aq-promoCard">
-            <video
-              className="aq-promoVideo"
-              src={VIDEOS[0].src}
-              poster={VIDEOS[0].still}
-              autoPlay
-              muted
-              loop
-              playsInline
-              aria-hidden="true"
-            />
+            {featured ? (
+              <video
+                className="aq-promoVideo"
+                src={featured.src}
+                poster={featured.still}
+                autoPlay
+                muted
+                loop
+                playsInline
+                aria-hidden="true"
+              />
+            ) : null}
             <div className="aq-promoCopy">
-              <h2 className="aq-promoTitle" id="aq-promo-title">
-                <span>开源动画短片 · NASA 4K 太空影像</span>
-                <span>上下一划，一部接一部 🎬</span>
-              </h2>
-              <p className="aq-promoText">共 {VIDEOS.length} 部高清影片，来自 Blender 工作室和 NASA，全部免费观看，像刷短视频一样一部接一部。</p>
+              {settings.promoTitle.length ? (
+                <h2 className="aq-promoTitle" id="aq-promo-title">
+                  {settings.promoTitle.map((line) => (
+                    <span key={line}>{line}</span>
+                  ))}
+                </h2>
+              ) : null}
+              {settings.promoText ? (
+                <p className="aq-promoText">{settings.promoText.replaceAll("{count}", String(videos.length))}</p>
+              ) : null}
               <button className="aq-promoButton" type="button" onClick={() => openFeed()}>
                 <Play aria-hidden="true" />
                 开始观看
@@ -229,7 +244,7 @@ export function AquaGlassApp() {
           {tab === "explore" ? (
             <div className="aq-filterRow">
               <div className="aq-chips" role="tablist" aria-label="类型">
-                {GENRES.map((name) => (
+                {genres.map((name) => (
                   <button
                     key={name}
                     className={genre === name ? "aq-chip active" : "aq-chip"}
@@ -315,7 +330,7 @@ export function AquaGlassApp() {
               title: "版权与致谢",
               body: (
                 <ul className="aq-creditList">
-                  {VIDEOS.map((video) => (
+                  {videos.map((video) => (
                     <li key={video.id}>
                       <a href={video.sourcePage} target="_blank" rel="noreferrer">
                         {video.title}
@@ -373,7 +388,7 @@ export function AquaGlassApp() {
       ) : null}
       {feedStart !== undefined ? (
         <VideoFeed
-          videos={visible.length ? visible : VIDEOS}
+          videos={visible.length ? visible : videos}
           startId={feedStart}
           isLiked={isLiked}
           onToggleLike={toggleLike}
